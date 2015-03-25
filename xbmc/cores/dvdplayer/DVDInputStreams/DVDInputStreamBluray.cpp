@@ -40,6 +40,7 @@
 #include "dialogs/GUIDialogKaiToast.h"
 #include "guilib/LocalizeStrings.h"
 #include "settings/DiscSettings.h"
+#include "storage/MediaManager.h"
 
 #define LIBBLURAY_BYTESEEK 0
 
@@ -264,13 +265,16 @@ bool CDVDInputStreamBluray::Open(const char* strFile, const std::string& content
   std::string filename;
   std::string root;
 
-  if(URIUtils::IsProtocol(strPath, "bluray"))
+  if(g_mediaManager.TranslateDevicePath("") == strPath)
+    strPath = URIUtils::AddFileToFolder(strFile, "BDMV/index.bdmv");
+
+  if (URIUtils::IsProtocol(strPath, "bluray"))
   {
     CURL url(strPath);
     root     = url.GetHostName();
     filename = URIUtils::GetFileName(url.GetFileName());
   }
-  else if(URIUtils::HasExtension(strPath, ".iso|.img"))
+  else if(URIUtils::IsDiscImage(strPath))
   {
     CURL url("udf://");
     url.SetHostName(strPath);

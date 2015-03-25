@@ -815,6 +815,16 @@ bool URIUtils::IsZIP(const std::string& strFile) // also checks for comic books!
   return HasExtension(strFile, ".zip|.cbz");
 }
 
+bool URIUtils::IsDiscImage(const std::string& strFile)
+{
+  return HasExtension(strFile, ".img|.iso|.nrg");
+}
+
+bool URIUtils::IsDiscStub(const std::string& strFile)
+{
+  return HasExtension(strFile, ".disc");
+}
+
 bool URIUtils::IsEFileStub(const std::string& strFile)
 {
   return HasExtension(strFile, ".efile");
