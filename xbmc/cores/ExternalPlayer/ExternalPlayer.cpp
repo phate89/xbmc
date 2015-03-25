@@ -29,6 +29,7 @@
 #include "dialogs/GUIDialogOK.h"
 #include "guilib/GUIWindowManager.h"
 #include "Application.h"
+#include "filesystem/EfileFile.h"
 #include "filesystem/MusicDatabaseFile.h"
 #include "FileItem.h"
 #include "utils/RegExp.h"
@@ -166,6 +167,8 @@ void CExternalPlayer::Process()
       else
         mainFile = URIUtils::AddFileToFolder(base.Get(), url.GetFileName());
     }
+    if (url.IsProtocol("efile"))
+      mainFile = CEFileFile::GetTranslatedPath(url);
   }
 
   if (m_filenameReplacers.size() > 0)

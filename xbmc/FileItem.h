@@ -152,6 +152,8 @@ public:
    */
   bool IsVideo() const;
 
+  bool IsEFileStub() const;
+
   bool IsDiscStub() const;
 
   /*!

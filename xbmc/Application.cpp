@@ -2919,22 +2919,11 @@ PlayBackRet CApplication::PlayFile(const CFileItem& item, bool bRestart)
       CUtil::ClearSubtitles();
   }
 
-  if (item.IsDiscStub())
+  if (item.IsEFileStub())
   {
-#ifdef HAS_DVD_DRIVE
-    // Display the Play Eject dialog if there is any optical disc drive
-    if (g_mediaManager.HasOpticalDrive())
-    {
-      if (CGUIDialogPlayEject::ShowAndGetInput(item))
-        // PlayDiscAskResume takes path to disc. No parameter means default DVD drive.
-        // Can't do better as CGUIDialogPlayEject calls CMediaManager::IsDiscInDrive, which assumes default DVD drive anyway
-        return MEDIA_DETECT::CAutorun::PlayDiscAskResume() ? PLAYBACK_OK : PLAYBACK_FAIL;
-    }
-    else
-#endif
-      CGUIDialogOK::ShowAndGetInput(435, 0, 436, 0);
-
-    return PLAYBACK_OK;
+    if (!CGUIDialogPlayEject::ShowAndGetInput(item))
+      return PLAYBACK_FAIL;
+    
   }
 
   if (item.IsPlayList())
@@ -2949,7 +2938,7 @@ PlayBackRet CApplication::PlayFile(const CFileItem& item, bool bRestart)
   }
 
   // a disc image might be Blu-Ray disc
-  if (item.IsBDFile() || item.IsDiscImage())
+  if (item.IsBDFile() || item.IsDiscImage() || item.IsDiscStub())
   {
     //check if we must show the simplified bd menu
     if (!CGUIDialogSimpleMenu::ShowPlaySelection(const_cast<CFileItem&>(item)))

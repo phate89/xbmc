@@ -745,17 +745,6 @@ bool CFileItem::IsPVRTimer() const
   return HasPVRTimerInfoTag();
 }
 
-bool CFileItem::IsDiscStub() const
-{
-  if (IsVideoDb() && HasVideoInfoTag())
-  {
-    CFileItem dbItem(m_bIsFolder ? GetVideoInfoTag()->m_strPath : GetVideoInfoTag()->m_strFileNameAndPath, m_bIsFolder);
-    return dbItem.IsDiscStub();
-  }
-
-  return URIUtils::HasExtension(m_strPath, g_advancedSettings.m_discStubExtensions);
-}
-
 bool CFileItem::IsAudio() const
 {
   /* check preset mime type */
@@ -850,6 +839,7 @@ bool CFileItem::IsFileFolder(EFileFolderType types) const
     || IsAPK()
     || IsZIP()
     || IsRAR()
+    || IsEFileStub()
     || IsRSS()
     || IsType(".ogg|.oga|.nsf|.sid|.sap|.xsp")
 #if defined(TARGET_ANDROID)
@@ -962,6 +952,16 @@ bool CFileItem::IsAPK() const
 bool CFileItem::IsZIP() const
 {
   return URIUtils::IsZIP(m_strPath);
+}
+
+bool CFileItem::IsEFileStub() const
+{
+  return URIUtils::IsEFileStub(m_strPath);
+}
+
+bool CFileItem::IsDiscStub() const
+{
+  return URIUtils::IsDiscStub(m_strPath);
 }
 
 bool CFileItem::IsCBZ() const
@@ -1482,36 +1482,7 @@ void CFileItem::SetFromSong(const CSong &song)
 
 std::string CFileItem::GetOpticalMediaPath() const
 {
-  std::string path;
-  std::string dvdPath;
-  path = URIUtils::AddFileToFolder(GetPath(), "VIDEO_TS.IFO");
-  if (CFile::Exists(path))
-    dvdPath = path;
-  else
-  {
-    dvdPath = URIUtils::AddFileToFolder(GetPath(), "VIDEO_TS");
-    path = URIUtils::AddFileToFolder(dvdPath, "VIDEO_TS.IFO");
-    dvdPath.clear();
-    if (CFile::Exists(path))
-      dvdPath = path;
-  }
-#ifdef HAVE_LIBBLURAY
-  if (dvdPath.empty())
-  {
-    path = URIUtils::AddFileToFolder(GetPath(), "index.bdmv");
-    if (CFile::Exists(path))
-      dvdPath = path;
-    else
-    {
-      dvdPath = URIUtils::AddFileToFolder(GetPath(), "BDMV");
-      path = URIUtils::AddFileToFolder(dvdPath, "index.bdmv");
-      dvdPath.clear();
-      if (CFile::Exists(path))
-        dvdPath = path;
-    }
-  }
-#endif
-  return dvdPath;
+  return URIUtils::GetOpticalMediaPath(GetPath());
 }
 
 /*
@@ -2908,7 +2879,7 @@ std::string CFileItem::GetBaseMoviePath(bool bUseFolderNames) const
   {
     std::string name2(strMovieName);
     URIUtils::GetParentPath(name2,strMovieName);
-    if (URIUtils::IsInArchive(m_strPath))
+    if (URIUtils::IsInArchive(m_strPath) || URIUtils::IsEFileStub(m_strPath))
     {
       std::string strArchivePath;
       URIUtils::GetParentPath(strMovieName, strArchivePath);

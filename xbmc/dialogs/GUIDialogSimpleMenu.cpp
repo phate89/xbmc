@@ -30,6 +30,7 @@
 #include "utils/log.h"
 #include "video/VideoInfoTag.h"
 #include "URL.h"
+#include "storage/MediaManager.h"
 
 bool CGUIDialogSimpleMenu::ShowPlaySelection(CFileItem& item)
 {
@@ -72,6 +73,18 @@ bool CGUIDialogSimpleMenu::ShowPlaySelection(CFileItem& item)
       return ShowPlaySelection(item, url.Get());
     }
   }
+
+  if (item.IsEFileStub())
+  {
+    std::string filename(g_mediaManager.TranslateDevicePath(""));
+    if (XFILE::CFile::Exists(URIUtils::AddFileToFolder(filename, "BDMV/index.bdmv")))
+    {
+      CURL url("bluray://");
+      url.SetHostName(filename);
+      return ShowPlaySelection(item, url.Get());
+    }
+  }
+
   return true;
 }
 

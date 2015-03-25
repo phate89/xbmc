@@ -26,6 +26,7 @@
 #include "JobManager.h"
 #include "FileOperationJob.h"
 #include "URIUtils.h"
+#include "filesystem/EFileFile.h"
 #include "filesystem/MultiPathDirectory.h"
 #include <vector>
 #include "settings/MediaSourceSettings.h"
@@ -111,7 +112,11 @@ bool CFileUtils::RemoteAccessAllowed(const std::string &strPath)
   const unsigned int SourcesSize = 5;
   std::string SourceNames[] = { "programs", "files", "video", "music", "pictures" };
 
-  string realPath = URIUtils::GetRealPath(strPath);
+  string realPath = strPath;
+  // for stub files we need to retrieve the original file
+  if (URIUtils::IsEFileStub(strPath))
+    realPath = CEFileFile::GetTranslatedPath(CURL(strPath));
+  realPath = URIUtils::GetRealPath(realPath);
   // for rar:// and zip:// paths we need to extract the path to the archive
   // instead of using the VFS path
   while (URIUtils::IsInArchive(realPath))

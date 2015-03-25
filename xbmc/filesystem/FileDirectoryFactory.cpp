@@ -164,6 +164,15 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
     return NULL;
   }
 #endif
+  if ((url.IsFileType("efile") || url.IsFileType("disc")) && !url.IsProtocol("efile"))
+  {
+    std::string filename(url.Get());
+    pItem->SetPath((URIUtils::CreateArchivePath("efile", 
+                                                CURL(URIUtils::GetDirectory(filename)), 
+                                                URIUtils::GetFileName(filename))
+                                               ).Get());
+    return NULL;
+  }
   if (url.IsFileType("zip"))
   {
     CURL zipURL = URIUtils::CreateArchivePath("zip", url);
