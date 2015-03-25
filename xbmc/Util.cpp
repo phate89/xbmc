@@ -73,6 +73,7 @@
 #endif
 #include "GUIUserMessages.h"
 #include "filesystem/File.h"
+#include "filesystem/EfileFile.h"
 #include "settings/MediaSettings.h"
 #include "settings/Settings.h"
 #include "utils/StringUtils.h"
@@ -1195,6 +1196,14 @@ int CUtil::GetMatchingSource(const std::string& strPath1, VECSOURCES& VECSOURCES
       // get the hostname portion of the url since it contains the archive file
       strPath = checkURL.GetHostName();
 
+      bIsSourceName = false;
+      bool bDummy;
+      return GetMatchingSource(strPath, VECSOURCES, bDummy);
+    }
+    if (StringUtils::StartsWithNoCase(strPath, "efile://"))
+    {
+      // get the original file name since it contains the efile
+      strPath = CEFileFile::GetOriginalPath(CURL(strPath));
       bIsSourceName = false;
       bool bDummy;
       return GetMatchingSource(strPath, VECSOURCES, bDummy);

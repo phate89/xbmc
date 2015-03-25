@@ -25,6 +25,7 @@
 #include "utils/URIUtils.h"
 #include "URL.h"
 #include "filesystem/File.h"
+#include "filesystem/EFileFile.h"
 #include "filesystem/DirectoryCache.h"
 #include "FileItem.h"
 #include "settings/Settings.h"
@@ -92,8 +93,9 @@ bool CThumbExtractor::DoWork()
   ||  m_item.IsDiscImage()
   ||  m_item.IsDVDFile(false, true)
   ||  m_item.IsInternetStream()
-  ||  m_item.IsDiscStub()
-  ||  m_item.IsPlayList())
+  || m_item.IsPlayList()
+  || m_item.IsEFileStub()
+  || m_item.IsDiscStub())
     return false;
 
   // For HTTP/FTP we only allow extraction when on a LAN

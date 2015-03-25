@@ -2958,6 +2958,12 @@ PlayBackRet CApplication::PlayFile(const CFileItem& item, bool bRestart)
       CUtil::ClearSubtitles();
   }
 
+  if (item.IsEFileStub())
+  {
+    if (!CGUIDialogPlayEject::ShowAndGetInput(item))
+      return PLAYBACK_CANCELED;
+  }
+
   if (item.IsDiscStub())
   {
 #ifdef HAS_DVD_DRIVE

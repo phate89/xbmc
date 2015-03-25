@@ -302,6 +302,7 @@
     <ClCompile Include="..\..\xbmc\filesystem\DirectoryFactory.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\DirectoryHistory.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\DllLibCurl.cpp" />
+    <ClCompile Include="..\..\xbmc\filesystem\EFileFile.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\File.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\FileCache.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\FavouritesDirectory.cpp" />
@@ -1078,6 +1079,7 @@
     <ClInclude Include="..\..\xbmc\filesystem\DirectoryHistory.h" />
     <ClInclude Include="..\..\xbmc\filesystem\DllLibCurl.h" />
     <ClInclude Include="..\..\xbmc\filesystem\DllLibNfs.h" />
+    <ClInclude Include="..\..\xbmc\filesystem\EFileFile.h" />
     <ClInclude Include="..\..\xbmc\filesystem\File.h" />
     <ClInclude Include="..\..\xbmc\filesystem\FileDirectoryFactory.h" />
     <ClInclude Include="..\..\xbmc\filesystem\FileFactory.h" />
