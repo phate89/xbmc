@@ -78,9 +78,9 @@ namespace VIDEO
 #define VIDEODB_DETAILS_MOVIE_SET_OVERVIEW      VIDEODB_MAX_COLUMNS + 5
 #define VIDEODB_DETAILS_MOVIE_FILE              VIDEODB_MAX_COLUMNS + 6
 #define VIDEODB_DETAILS_MOVIE_PATH              VIDEODB_MAX_COLUMNS + 7
-#define VIDEODB_DETAILS_MOVIE_PLAYCOUNT         VIDEODB_MAX_COLUMNS + 8
-#define VIDEODB_DETAILS_MOVIE_LASTPLAYED        VIDEODB_MAX_COLUMNS + 9
-#define VIDEODB_DETAILS_MOVIE_DATEADDED         VIDEODB_MAX_COLUMNS + 10
+#define VIDEODB_DETAILS_MOVIE_DATEADDED         VIDEODB_MAX_COLUMNS + 8
+#define VIDEODB_DETAILS_MOVIE_PLAYCOUNT         VIDEODB_MAX_COLUMNS + 9
+#define VIDEODB_DETAILS_MOVIE_LASTPLAYED        VIDEODB_MAX_COLUMNS + 10
 #define VIDEODB_DETAILS_MOVIE_RESUME_TIME       VIDEODB_MAX_COLUMNS + 11
 #define VIDEODB_DETAILS_MOVIE_TOTAL_TIME        VIDEODB_MAX_COLUMNS + 12
 
@@ -89,14 +89,14 @@ namespace VIDEO
 #define VIDEODB_DETAILS_EPISODE_SEASON_ID       VIDEODB_MAX_COLUMNS + 4
 #define VIDEODB_DETAILS_EPISODE_FILE            VIDEODB_MAX_COLUMNS + 5
 #define VIDEODB_DETAILS_EPISODE_PATH            VIDEODB_MAX_COLUMNS + 6
-#define VIDEODB_DETAILS_EPISODE_PLAYCOUNT       VIDEODB_MAX_COLUMNS + 7
-#define VIDEODB_DETAILS_EPISODE_LASTPLAYED      VIDEODB_MAX_COLUMNS + 8
-#define VIDEODB_DETAILS_EPISODE_DATEADDED       VIDEODB_MAX_COLUMNS + 9
-#define VIDEODB_DETAILS_EPISODE_TVSHOW_NAME     VIDEODB_MAX_COLUMNS + 10
-#define VIDEODB_DETAILS_EPISODE_TVSHOW_GENRE    VIDEODB_MAX_COLUMNS + 11
-#define VIDEODB_DETAILS_EPISODE_TVSHOW_STUDIO   VIDEODB_MAX_COLUMNS + 12
-#define VIDEODB_DETAILS_EPISODE_TVSHOW_AIRED    VIDEODB_MAX_COLUMNS + 13
-#define VIDEODB_DETAILS_EPISODE_TVSHOW_MPAA     VIDEODB_MAX_COLUMNS + 14
+#define VIDEODB_DETAILS_EPISODE_DATEADDED       VIDEODB_MAX_COLUMNS + 7
+#define VIDEODB_DETAILS_EPISODE_TVSHOW_NAME     VIDEODB_MAX_COLUMNS + 8
+#define VIDEODB_DETAILS_EPISODE_TVSHOW_GENRE    VIDEODB_MAX_COLUMNS + 9
+#define VIDEODB_DETAILS_EPISODE_TVSHOW_STUDIO   VIDEODB_MAX_COLUMNS + 10
+#define VIDEODB_DETAILS_EPISODE_TVSHOW_AIRED    VIDEODB_MAX_COLUMNS + 11
+#define VIDEODB_DETAILS_EPISODE_TVSHOW_MPAA     VIDEODB_MAX_COLUMNS + 12
+#define VIDEODB_DETAILS_EPISODE_PLAYCOUNT       VIDEODB_MAX_COLUMNS + 13
+#define VIDEODB_DETAILS_EPISODE_LASTPLAYED      VIDEODB_MAX_COLUMNS + 14
 #define VIDEODB_DETAILS_EPISODE_RESUME_TIME     VIDEODB_MAX_COLUMNS + 15
 #define VIDEODB_DETAILS_EPISODE_TOTAL_TIME      VIDEODB_MAX_COLUMNS + 16
 
@@ -112,9 +112,9 @@ namespace VIDEO
 #define VIDEODB_DETAILS_MUSICVIDEO_USER_RATING  VIDEODB_MAX_COLUMNS + 2
 #define VIDEODB_DETAILS_MUSICVIDEO_FILE         VIDEODB_MAX_COLUMNS + 3
 #define VIDEODB_DETAILS_MUSICVIDEO_PATH         VIDEODB_MAX_COLUMNS + 4
-#define VIDEODB_DETAILS_MUSICVIDEO_PLAYCOUNT    VIDEODB_MAX_COLUMNS + 5
-#define VIDEODB_DETAILS_MUSICVIDEO_LASTPLAYED   VIDEODB_MAX_COLUMNS + 6
-#define VIDEODB_DETAILS_MUSICVIDEO_DATEADDED    VIDEODB_MAX_COLUMNS + 7
+#define VIDEODB_DETAILS_MUSICVIDEO_DATEADDED    VIDEODB_MAX_COLUMNS + 5
+#define VIDEODB_DETAILS_MUSICVIDEO_PLAYCOUNT    VIDEODB_MAX_COLUMNS + 6
+#define VIDEODB_DETAILS_MUSICVIDEO_LASTPLAYED   VIDEODB_MAX_COLUMNS + 7
 #define VIDEODB_DETAILS_MUSICVIDEO_RESUME_TIME  VIDEODB_MAX_COLUMNS + 8
 #define VIDEODB_DETAILS_MUSICVIDEO_TOTAL_TIME   VIDEODB_MAX_COLUMNS + 9
 
@@ -904,8 +904,8 @@ private:
    */
   int RunQuery(const std::string &sql);
 
-  void AppendIdLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter);
-  void AppendLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter);
+  void AppendIdLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter, bool checkProfileId = false);
+  void AppendLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter, bool checkProfileId = false);
 
   /*! \brief Determine whether the path is using lookup using folders
    \param path the path to check
@@ -924,6 +924,8 @@ private:
   virtual int GetSchemaVersion() const;
   virtual int GetExportVersion() const { return 1; };
   const char *GetBaseDBName() const { return "MyVideos"; };
+
+  std::string getViewQuery(const std::string &view);
 
   void ConstructPath(std::string& strDest, const std::string& strPath, const std::string& strFileName);
   void SplitPath(const std::string& strFileNameAndPath, std::string& strPath, std::string& strFileName);
