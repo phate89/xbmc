@@ -57,6 +57,7 @@ public:
   void Clear();
 
   bool LoadProfile(size_t index);
+  bool execute();
   bool DeleteProfile(size_t index);
 
   void CreateProfileFolders();

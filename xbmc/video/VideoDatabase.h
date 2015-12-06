@@ -612,6 +612,9 @@ public:
    \return true if the scraper is in use, false otherwise.
    */
   bool ScraperInUse(const std::string &scraperID) const;
+  std::map<int, CVideoInfoTag> getMoviesFromView();
+  std::map<int, CVideoInfoTag> getMoviesManual();
+  std::map<int, CVideoInfoTag> getMovies2Query();
   
   // scanning hashes and paths scanned
   bool SetPathHash(const std::string &path, const std::string &hash);

@@ -51,6 +51,8 @@
 #include "utils/URIUtils.h"
 #include "utils/Variant.h"
 #include "utils/XMLUtils.h"
+#include "video/VideoDatabase.h"
+#include "video/VideoInfoTag.h"
 
 // TODO
 // eventually the profile should dictate where special://masterprofile/ is
@@ -253,6 +255,11 @@ bool CProfilesManager::LoadProfile(size_t index)
   CreateProfileFolders();
 
   CDatabaseManager::GetInstance().Initialize();
+
+  if (!CProfilesManager::GetInstance().IsMasterProfile()) {
+    if (!execute())
+      CLog::Log(LOGNOTICE, "The methods didn't get the same result. Test failed.");
+  }
   CButtonTranslator::GetInstance().Load(true);
 
   CInputManager::GetInstance().SetMouseEnabled(CSettings::GetInstance().GetBool(CSettings::SETTING_INPUT_ENABLEMOUSE));
@@ -284,6 +291,132 @@ bool CProfilesManager::LoadProfile(size_t index)
   CUtil::DeleteDirectoryCache();
   g_directoryCache.Clear();
 
+  return true;
+}
+
+bool CProfilesManager::execute()
+{
+  //CJobManager::GetInstance().PauseJobs();
+  CVideoDatabase db;
+  if (!db.Open())
+    return false;
+  std::map<int, CVideoInfoTag> movies1 = db.getMoviesFromView();
+  std::map<int, CVideoInfoTag> movies2 = db.getMoviesManual();
+  std::map<int, CVideoInfoTag> movies3 = db.getMovies2Query();
+
+  int count = movies1.size();
+  if (count != movies2.size() || count != movies3.size())
+    return false;
+  for (auto& a : movies1)
+  {
+    int i = a.first;
+    if (movies1[i].m_iDbId != movies2[i].m_iDbId || movies1[i].m_iDbId != movies3[i].m_iDbId)
+      return false;
+    if (movies1[i].m_type != movies2[i].m_type || movies1[i].m_type != movies3[i].m_type)
+      return false;
+    if (movies1[i].m_iSetId != movies2[i].m_iSetId || movies1[i].m_iSetId != movies3[i].m_iSetId)
+      return false;
+    if (movies1[i].m_strSet != movies2[i].m_strSet || movies1[i].m_strSet != movies3[i].m_strSet)
+      return false;
+    if (movies1[i].m_strSetOverview != movies2[i].m_strSetOverview || movies1[i].m_strSetOverview != movies3[i].m_strSetOverview)
+      return false;
+    if (movies1[i].m_iFileId != movies2[i].m_iFileId || movies1[i].m_iFileId != movies3[i].m_iFileId)
+      return false;
+    if (movies1[i].m_strPath != movies2[i].m_strPath || movies1[i].m_strPath != movies3[i].m_strPath)
+      return false;
+    if (movies1[i].m_strFileNameAndPath != movies2[i].m_strFileNameAndPath || movies1[i].m_strFileNameAndPath != movies3[i].m_strFileNameAndPath)
+      return false;
+    if (movies1[i].m_playCount != movies2[i].m_playCount || movies1[i].m_playCount != movies3[i].m_playCount)
+      return false;
+    if (movies1[i].m_lastPlayed.GetAsDBDate() != movies2[i].m_lastPlayed.GetAsDBDate() || movies1[i].m_lastPlayed.GetAsDBDate() != movies3[i].m_lastPlayed.GetAsDBDate())
+      return false;
+    if (movies1[i].m_dateAdded.GetAsDBDate() != movies2[i].m_dateAdded.GetAsDBDate() || movies1[i].m_dateAdded.GetAsDBDate() != movies3[i].m_dateAdded.GetAsDBDate())
+      return false;
+    if (movies1[i].m_resumePoint.timeInSeconds != movies2[i].m_resumePoint.timeInSeconds || movies1[i].m_resumePoint.timeInSeconds != movies3[i].m_resumePoint.timeInSeconds)
+      return false;
+    if (movies1[i].m_resumePoint.totalTimeInSeconds != movies2[i].m_resumePoint.totalTimeInSeconds || movies1[i].m_resumePoint.totalTimeInSeconds != movies3[i].m_resumePoint.totalTimeInSeconds)
+      return false;
+    if (movies1[i].m_resumePoint.type != movies2[i].m_resumePoint.type || movies1[i].m_resumePoint.type != movies3[i].m_resumePoint.type)
+      return false;
+    if (movies1[i].m_iUserRating != movies2[i].m_iUserRating || movies1[i].m_iUserRating != movies3[i].m_iUserRating)
+      return false;
+
+
+    if (movies1[i].m_strTitle != movies2[i].m_strTitle || movies1[i].m_strTitle != movies3[i].m_strTitle)
+      return false;
+    if (movies1[i].m_strPlot != movies2[i].m_strPlot || movies1[i].m_strPlot != movies3[i].m_strPlot)
+      return false;
+    if (movies1[i].m_strPlotOutline != movies2[i].m_strPlotOutline || movies1[i].m_strPlotOutline != movies3[i].m_strPlotOutline)
+      return false;
+    if (movies1[i].m_strTagLine != movies2[i].m_strTagLine || movies1[i].m_strTagLine != movies3[i].m_strTagLine)
+      return false;
+    if (movies1[i].m_strVotes != movies2[i].m_strVotes || movies1[i].m_strVotes != movies3[i].m_strVotes)
+      return false;
+    if (movies1[i].m_fRating != movies2[i].m_fRating || movies1[i].m_fRating != movies3[i].m_fRating)
+      return false;
+    if (movies1[i].m_writingCredits != movies2[i].m_writingCredits || movies1[i].m_writingCredits != movies3[i].m_writingCredits)
+      return false;
+    if (movies1[i].m_iYear != movies2[i].m_iYear || movies1[i].m_iYear != movies3[i].m_iYear)
+      return false;
+    if (movies1[i].m_strPictureURL.m_xml != movies2[i].m_strPictureURL.m_xml || movies1[i].m_strPictureURL.m_xml != movies3[i].m_strPictureURL.m_xml)
+      return false;
+    if (movies1[i].m_strIMDBNumber != movies2[i].m_strIMDBNumber || movies1[i].m_strIMDBNumber != movies3[i].m_strIMDBNumber)
+      return false;
+    if (movies1[i].m_strSortTitle != movies2[i].m_strSortTitle || movies1[i].m_strSortTitle != movies3[i].m_strSortTitle)
+      return false;
+    if (movies1[i].m_duration != movies2[i].m_duration || movies1[i].m_duration != movies3[i].m_duration)
+      return false;
+    if (movies1[i].m_strMPAARating != movies2[i].m_strMPAARating || movies1[i].m_strMPAARating != movies3[i].m_strMPAARating)
+      return false;
+    if (movies1[i].m_iTop250 != movies2[i].m_iTop250 || movies1[i].m_iTop250 != movies3[i].m_iTop250)
+      return false;
+    if (movies1[i].m_genre != movies2[i].m_genre || movies1[i].m_genre != movies3[i].m_genre)
+      return false;
+    if (movies1[i].m_director != movies2[i].m_director || movies1[i].m_director != movies3[i].m_director)
+      return false;
+    if (movies1[i].m_strOriginalTitle != movies2[i].m_strOriginalTitle || movies1[i].m_strOriginalTitle != movies3[i].m_strOriginalTitle)
+      return false;
+    if (movies1[i].m_strPictureURL.m_spoof != movies2[i].m_strPictureURL.m_spoof || movies1[i].m_strPictureURL.m_spoof != movies3[i].m_strPictureURL.m_spoof)
+      return false;
+    if (movies1[i].m_studio != movies2[i].m_studio || movies1[i].m_studio != movies3[i].m_studio)
+      return false;
+    if (movies1[i].m_strTrailer != movies2[i].m_strTrailer || movies1[i].m_strTrailer != movies3[i].m_strTrailer)
+      return false;
+    if (movies1[i].m_fanart.m_xml != movies2[i].m_fanart.m_xml || movies1[i].m_fanart.m_xml != movies3[i].m_fanart.m_xml)
+      return false;
+    if (movies1[i].m_country != movies2[i].m_country || movies1[i].m_country != movies3[i].m_country)
+      return false;
+    if (movies1[i].m_basePath != movies2[i].m_basePath || movies1[i].m_basePath != movies3[i].m_basePath)
+      return false;
+    if (movies1[i].m_parentPathID != movies2[i].m_parentPathID || movies1[i].m_parentPathID != movies3[i].m_parentPathID)
+      return false;
+  }
+  CLog::Log(LOGNOTICE, "All the methods get the same result");
+
+
+  int loops = 100;
+  auto movieTime = XbmcThreads::SystemClockMillis();
+  for (int i = 0; i<loops; ++i)
+  {
+    db.getMoviesFromView();
+  }
+  unsigned int span = XbmcThreads::SystemClockMillis() - movieTime;
+  CLog::Log(LOGNOTICE, "First method: %d ms", span / loops);
+  movieTime = XbmcThreads::SystemClockMillis();
+  for (int i = 0; i<loops; ++i)
+  {
+    db.getMoviesManual();
+  }
+  span = XbmcThreads::SystemClockMillis() - movieTime;
+  CLog::Log(LOGNOTICE, "Second method: %d ms", span / loops);
+  movieTime = XbmcThreads::SystemClockMillis();
+  for (int i = 0; i<loops; ++i)
+  {
+    db.getMovies2Query();
+  }
+  span = XbmcThreads::SystemClockMillis() - movieTime;
+  CLog::Log(LOGNOTICE, "Third method: %d ms", span / loops);
+  db.Close();
   return true;
 }
 
