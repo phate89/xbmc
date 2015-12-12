@@ -146,7 +146,7 @@ void CVideoDatabase::CreateTables()
   for (int i = 0; i < VIDEODB_MAX_COLUMNS; i++)
     columns += StringUtils::Format(",c%02d text", i);
 
-  columns += ", userrating integer)";
+  columns += ", userrating integer, defaultidPath integer)";
   m_pDS->exec(columns);
 
   CLog::Log(LOGINFO, "create episode table");
@@ -365,59 +365,48 @@ void CVideoDatabase::CreateViews()
                                       VIDEODB_ID_TV_MPAA);
   m_pDS->exec(episodeview);
 
-  CLog::Log(LOGINFO, "create tvshowcounts");
-  std::string tvshowcounts = PrepareSQL("CREATE VIEW tvshowcounts AS SELECT "
-                                       "      tvshow.idShow AS idShow,"
-                                       "      MAX(files.lastPlayed) AS lastPlayed,"
-                                       "      NULLIF(COUNT(episode.c12), 0) AS totalCount,"
-                                       "      COUNT(files.playCount) AS watchedcount,"
-                                       "      NULLIF(COUNT(DISTINCT(episode.c12)), 0) AS totalSeasons, "
-                                       "      MAX(files.dateAdded) as dateAdded "
-                                       "    FROM tvshow"
-                                       "      LEFT JOIN episode ON"
-                                       "        episode.idShow=tvshow.idShow"
-                                       "      LEFT JOIN files ON"
-                                       "        files.idFile=episode.idFile "
-                                       "    GROUP BY tvshow.idShow");
-  m_pDS->exec(tvshowcounts);
-
   CLog::Log(LOGINFO, "create tvshow_view");
   std::string tvshowview = PrepareSQL("CREATE VIEW tvshow_view AS SELECT "
                                      "  tvshow.*,"
                                      "  path.idParentPath AS idParentPath,"
                                      "  path.strPath AS strPath,"
-                                     "  tvshowcounts.dateAdded AS dateAdded,"
-                                     "  lastPlayed, totalCount, watchedcount, totalSeasons "
+                                     "  MAX(files.dateAdded) as dateAdded,"
+                                     "  MAX(files.lastPlayed) AS lastPlayed, "
+                                     "  NULLIF(COUNT(episode.c12), 0) AS totalCount, "
+                                     "  COUNT(files.playCount) AS watchedcount, "
+                                     "  NULLIF(COUNT(DISTINCT(episode.c12)), 0) AS totalSeasons "
                                      "FROM tvshow"
-                                     "  LEFT JOIN tvshowlinkpath ON"
-                                     "    tvshowlinkpath.idShow=tvshow.idShow"
+                                     "  LEFT JOIN episode ON"
+                                     "    episode.idShow=tvshow.idShow"
+                                     "  LEFT JOIN files ON"
+                                     "    files.idFile=episode.idFile "
                                      "  LEFT JOIN path ON"
-                                     "    path.idPath=tvshowlinkpath.idPath"
-                                     "  INNER JOIN tvshowcounts ON"
-                                     "    tvshow.idShow = tvshowcounts.idShow "
+                                     "    path.idPath=tvshow.defaultidPath "
                                      "GROUP BY tvshow.idShow");
   m_pDS->exec(tvshowview);
 
   CLog::Log(LOGINFO, "create season_view");
   std::string seasonview = PrepareSQL("CREATE VIEW season_view AS SELECT "
                                      "  seasons.*, "
-                                     "  tvshow_view.strPath AS strPath,"
-                                     "  tvshow_view.c%02d AS showTitle,"
-                                     "  tvshow_view.c%02d AS plot,"
-                                     "  tvshow_view.c%02d AS premiered,"
-                                     "  tvshow_view.c%02d AS genre,"
-                                     "  tvshow_view.c%02d AS studio,"
-                                     "  tvshow_view.c%02d AS mpaa,"
+                                     "  path.strPath AS strPath,"
+                                     "  tvshow.c%02d AS showTitle,"
+                                     "  tvshow.c%02d AS plot,"
+                                     "  tvshow.c%02d AS premiered,"
+                                     "  tvshow.c%02d AS genre,"
+                                     "  tvshow.c%02d AS studio,"
+                                     "  tvshow.c%02d AS mpaa,"
                                      "  count(DISTINCT episode.idEpisode) AS episodes,"
                                      "  count(files.playCount) AS playCount,"
                                      "  min(episode.c%02d) AS aired "
                                      "FROM seasons"
-                                     "  JOIN tvshow_view ON"
-                                     "    tvshow_view.idShow = seasons.idShow"
+                                     "  JOIN tvshow ON"
+                                     "    tvshow.idShow = seasons.idShow"
                                      "  JOIN episode ON"
-                                     "    episode.idShow = seasons.idShow AND episode.c%02d = seasons.season"
+                                     "    episode.idSeason = seasons.idSeason"
                                      "  JOIN files ON"
                                      "    files.idFile = episode.idFile "
+                                     "  LEFT JOIN path ON"
+                                     "    tvshow.defaultidPath = path.idPath "
                                      "GROUP BY seasons.idSeason",
                                      VIDEODB_ID_TV_TITLE, VIDEODB_ID_TV_PLOT, VIDEODB_ID_TV_PREMIERED,
                                      VIDEODB_ID_TV_GENRE, VIDEODB_ID_TV_STUDIOS, VIDEODB_ID_TV_MPAA,
@@ -1288,6 +1277,8 @@ bool CVideoDatabase::AddPathToTvShow(int idShow, const std::string &path, const 
 
     idPath = AddPath(path, parentPath, dateAdded.GetAsDBDateTime());
   }
+
+  ExecuteQuery(PrepareSQL("UPDATE tvshow SET defaultidPath = %i WHERE idShow = %i", idPath, idShow));
 
   return ExecuteQuery(PrepareSQL("REPLACE INTO tvshowlinkpath(idShow, idPath) VALUES (%i,%i)", idShow, idPath));
 }
@@ -4680,11 +4671,21 @@ void CVideoDatabase::UpdateTables(int iVersion)
       m_pDS->next();
     }
   }
+
+  if (iVersion < 101)
+  {
+    m_pDS->exec("ALTER TABLE tvshow ADD defaultidPath INTEGER");
+    m_pDS->exec("UPDATE tvshow SET defaultidPath = (SELECT tvshowlinkpath.idPath "
+                                                   "FROM tvshowlinkpath "
+                                                   "WHERE tvshowlinkpath.idShow = tvshow.idShow "
+                                                   "GROUP BY tvshowlinkpath.idShow )");
+  }
+
 }
 
 int CVideoDatabase::GetSchemaVersion() const
 {
-  return 100;
+  return 101;
 }
 
 bool CVideoDatabase::LookupByFolders(const std::string &path, bool shows)
@@ -8004,6 +8005,11 @@ void CVideoDatabase::CleanDatabase(CGUIDialogProgressBarHandle* handle, const st
                                   "AND NOT EXISTS (SELECT 1 FROM musicvideo WHERE musicvideo.c%02d = path.idPath)"
                 , VIDEODB_ID_PARENTPATHID, VIDEODB_ID_EPISODE_PARENTPATHID, VIDEODB_ID_MUSICVIDEO_PARENTPATHID );
     m_pDS->exec(sql);
+    
+    m_pDS->exec("UPDATE tvshow SET defaultidPath = (SELECT tvshowlinkpath.idPath "
+                                                   "FROM tvshowlinkpath "
+                                                   "WHERE tvshowlinkpath.idShow = tvshow.idShow "
+                                                   "GROUP BY tvshowlinkpath.idShow )");
 
     CLog::Log(LOGDEBUG, "%s: Cleaning genre table", __FUNCTION__);
     sql = "DELETE FROM genre "
