@@ -88,7 +88,6 @@ void CVideoInfoTag::Reset()
   m_playCount = 0;
   m_fEpBookmark = 0;
   m_basePath.clear();
-  m_parentPathID = -1;
   m_resumePoint.Reset();
   m_resumePoint.type = CBookmark::RESUME;
   m_iIdShow = -1;
@@ -347,7 +346,6 @@ void CVideoInfoTag::Archive(CArchive& ar)
     }
     ar << m_fEpBookmark;
     ar << m_basePath;
-    ar << m_parentPathID;
     ar << m_resumePoint.timeInSeconds;
     ar << m_resumePoint.totalTimeInSeconds;
     ar << m_iIdShow;
@@ -438,7 +436,6 @@ void CVideoInfoTag::Archive(CArchive& ar)
 
     ar >> m_fEpBookmark;
     ar >> m_basePath;
-    ar >> m_parentPathID;
     ar >> m_resumePoint.timeInSeconds;
     ar >> m_resumePoint.totalTimeInSeconds;
     ar >> m_iIdShow;

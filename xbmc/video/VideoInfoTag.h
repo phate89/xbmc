@@ -129,7 +129,6 @@ public:
   void SetUserrating(int userrating);
 
   std::string m_basePath; // the base path of the video, for folder-based lookups
-  int m_parentPathID;      // the parent path id where the base path of the video lies
   std::vector<std::string> m_director;
   std::vector<std::string> m_writingCredits;
   std::vector<std::string> m_genre;

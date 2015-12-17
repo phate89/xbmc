@@ -365,36 +365,19 @@ void CVideoDatabase::CreateViews()
                                       VIDEODB_ID_TV_MPAA);
   m_pDS->exec(episodeview);
 
-  CLog::Log(LOGINFO, "create tvshowcounts");
-  std::string tvshowcounts = PrepareSQL("CREATE VIEW tvshowcounts AS SELECT "
-                                       "      tvshow.idShow AS idShow,"
-                                       "      MAX(files.lastPlayed) AS lastPlayed,"
-                                       "      NULLIF(COUNT(episode.c12), 0) AS totalCount,"
-                                       "      COUNT(files.playCount) AS watchedcount,"
-                                       "      NULLIF(COUNT(DISTINCT(episode.c12)), 0) AS totalSeasons, "
-                                       "      MAX(files.dateAdded) as dateAdded "
-                                       "    FROM tvshow"
-                                       "      LEFT JOIN episode ON"
-                                       "        episode.idShow=tvshow.idShow"
-                                       "      LEFT JOIN files ON"
-                                       "        files.idFile=episode.idFile "
-                                       "    GROUP BY tvshow.idShow");
-  m_pDS->exec(tvshowcounts);
-
   CLog::Log(LOGINFO, "create tvshow_view");
   std::string tvshowview = PrepareSQL("CREATE VIEW tvshow_view AS SELECT "
                                      "  tvshow.*,"
-                                     "  path.idParentPath AS idParentPath,"
-                                     "  path.strPath AS strPath,"
-                                     "  tvshowcounts.dateAdded AS dateAdded,"
-                                     "  lastPlayed, totalCount, watchedcount, totalSeasons "
+                                     "  MAX(files.dateAdded) as dateAdded, "
+                                     "  MAX(files.lastPlayed) AS lastPlayed,"
+                                     "  NULLIF(COUNT(episode.c12), 0) AS totalCount,"
+                                     "  COUNT(files.playCount) AS watchedcount,"
+                                     "  NULLIF(COUNT(DISTINCT(episode.c12)), 0) AS totalSeasons "
                                      "FROM tvshow"
-                                     "  LEFT JOIN tvshowlinkpath ON"
-                                     "    tvshowlinkpath.idShow=tvshow.idShow"
-                                     "  LEFT JOIN path ON"
-                                     "    path.idPath=tvshowlinkpath.idPath"
-                                     "  INNER JOIN tvshowcounts ON"
-                                     "    tvshow.idShow = tvshowcounts.idShow "
+                                     "  LEFT JOIN episode ON"
+                                     "    episode.idShow=tvshow.idShow"
+                                     "  LEFT JOIN files ON"
+                                     "    files.idFile=episode.idFile "
                                      "GROUP BY tvshow.idShow");
   m_pDS->exec(tvshowview);
 
@@ -594,9 +577,14 @@ bool CVideoDatabase::GetPathsForTvShow(int idShow, std::set<int>& paths)
     if (NULL == m_pDS.get()) return false;
 
     // add base path
-    strSQL = PrepareSQL("SELECT strPath FROM tvshow_view WHERE idShow=%i", idShow);
-    if (m_pDS->query(strSQL))
-      paths.insert(GetPathId(m_pDS->fv(0).get_asString()));
+    strSQL = PrepareSQL("SELECT idPath FROM tvshowlinkpath WHERE idShow=%i", idShow);
+    m_pDS->query(strSQL);
+
+    while (!m_pDS->eof())
+    {
+      paths.insert(m_pDS->fv(0).get_asInt());
+      m_pDS->next();
+    }
 
     // add all other known paths
     strSQL = PrepareSQL("SELECT DISTINCT idPath FROM files JOIN episode ON episode.idFile=files.idFile WHERE episode.idShow=%i",idShow);
@@ -3569,6 +3557,70 @@ CVideoInfoTag CVideoDatabase::GetDetailsForMovie(const dbiplus::sql_record* cons
   return details;
 }
 
+bool CVideoDatabase::GetTVShowsByParentPath(int idParentPath, CFileItemList& items)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    std::string strSQL = PrepareSQL("SELECT tvshow_view.*, path.strPath "
+                                    "FROM tvshow_view "
+                                    "  LEFT JOIN tvshowlinkpath ON "
+                                    "    tvshowlinkpath.idShow = tvshow_view.idShow "
+                                    "  LEFT JOIN path ON "
+                                    "    path.idPath = tvshowlinkpath.idPath "
+                                    "WHERE path.idParentPath = %d ", idParentPath);
+
+    int iRowsFound = RunQuery(strSQL);
+    if (iRowsFound <= 0)
+      return iRowsFound == 0;
+    items.SetProperty("total", iRowsFound);
+    items.Reserve(iRowsFound);
+    
+    CVideoDbUrl videoUrl;
+    videoUrl.FromString("videodb://tvshows/titles/");
+
+    while (!m_pDS->eof())
+    {
+      CFileItemPtr pItem(new CFileItem());
+      const auto& record = m_pDS->get_sql_record();
+      CVideoInfoTag movie = GetDetailsForTvShow(record, false, pItem.get());
+      movie.SetPath(m_pDS->fv("path.strPath").get_asString());
+
+      bool res1 = CProfilesManager::GetInstance().GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE;
+      bool res2 = g_passwordManager.bMasterUser;
+      bool res3 = g_passwordManager.IsDatabasePathUnlocked(movie.m_strPath, *CMediaSourceSettings::GetInstance().GetSources("video"));
+      bool res4 = CSettings::GetInstance().GetBool(CSettings::SETTING_VIDEOLIBRARY_SHOWEMPTYTVSHOWS);
+      bool res5 = movie.m_iEpisode > 0;
+
+      if ((CProfilesManager::GetInstance().GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE ||
+        g_passwordManager.bMasterUser ||
+        g_passwordManager.IsDatabasePathUnlocked(movie.m_strPath, *CMediaSourceSettings::GetInstance().GetSources("video"))) &&
+        (CSettings::GetInstance().GetBool(CSettings::SETTING_VIDEOLIBRARY_SHOWEMPTYTVSHOWS) || movie.m_iEpisode > 0))
+      {
+        pItem->SetFromVideoInfoTag(movie);
+
+        CVideoDbUrl itemUrl = videoUrl;
+        std::string path = StringUtils::Format("%i/", record->at(0).get_asInt());
+        itemUrl.AppendPath(path);
+        pItem->SetPath(itemUrl.ToString());
+
+        pItem->SetOverlayImage(CGUIListItem::ICON_OVERLAY_UNWATCHED, (pItem->GetVideoInfoTag()->m_playCount > 0) && (pItem->GetVideoInfoTag()->m_iEpisode > 0));
+        items.Add(pItem);
+      }
+      m_pDS->next();
+    }
+    m_pDS->close();
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+  }
+  return false;
+}
+
 CVideoInfoTag CVideoDatabase::GetDetailsForTvShow(std::unique_ptr<Dataset> &pDS, bool getDetails /* = false */, CFileItem* item /* = NULL */)
 {
   return GetDetailsForTvShow(pDS->get_sql_record(), getDetails, item);
@@ -3587,9 +3639,7 @@ CVideoInfoTag CVideoDatabase::GetDetailsForTvShow(const dbiplus::sql_record* con
   GetDetailsFromDB(record, VIDEODB_ID_TV_MIN, VIDEODB_ID_TV_MAX, DbTvShowOffsets, details, 1);
   details.m_iDbId = idTvShow;
   details.m_type = MediaTypeTvShow;
-  details.m_strPath = record->at(VIDEODB_DETAILS_TVSHOW_PATH).get_asString();
   details.m_basePath = details.m_strPath;
-  details.m_parentPathID = record->at(VIDEODB_DETAILS_TVSHOW_PARENTPATHID).get_asInt();
   details.m_dateAdded.SetFromDBDateTime(record->at(VIDEODB_DETAILS_TVSHOW_DATEADDED).get_asString());
   details.m_lastPlayed.SetFromDBDateTime(record->at(VIDEODB_DETAILS_TVSHOW_LASTPLAYED).get_asString());
   details.m_iSeason = record->at(VIDEODB_DETAILS_TVSHOW_NUM_SEASONS).get_asInt();
@@ -3604,6 +3654,14 @@ CVideoInfoTag CVideoDatabase::GetDetailsForTvShow(const dbiplus::sql_record* con
 
   if (getDetails)
   {
+    std::vector<std::string> paths;
+    GetPathsLinkedToTvShow(idTvShow, paths);
+    std::string temp = paths.back();
+    if (!paths.empty())
+    {
+      details.m_strPath = paths.back();
+      details.m_basePath = details.m_strPath;
+    }
     GetCast(details.m_iDbId, "tvshow", details.m_cast);
     GetTags(details.m_iDbId, MediaTypeTvShow, details.m_tags);
 
@@ -9137,8 +9195,7 @@ bool CVideoDatabase::GetItemsForPath(const std::string &content, const std::stri
   }
   else if (content == "tvshows")
   {
-    Filter filter(PrepareSQL("idParentPath=%d", pathID));
-    GetTvShowsByWhere("videodb://tvshows/titles/", filter, items);
+    GetTVShowsByParentPath(pathID, items);
   }
   else if (content == "musicvideos")
   {

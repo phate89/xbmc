@@ -188,7 +188,7 @@ JSONRPC_STATUS CVideoLibrary::GetTVShows(const std::string &method, ITransportLa
   for (CVariant::const_iterator_array itr = parameterObject["properties"].begin_array(); itr != parameterObject["properties"].end_array(); itr++)
   {
     std::string fieldValue = itr->asString();
-    if (fieldValue == "cast" || fieldValue == "tag")
+    if (fieldValue == "cast" || fieldValue == "tag" || fieldValue == "file")
       additionalInfo = true;
   }
 
