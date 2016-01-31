@@ -285,7 +285,7 @@ namespace XBMCAddon
           const String value(alt.which() == first ? alt.former() : emptyString);
 
           if (key == "year")
-            item->GetVideoInfoTag()->m_iYear = strtol(value.c_str(), NULL, 10);
+            item->GetVideoInfoTag()->SetYear(strtol(value.c_str(), NULL, 10));
           else if (key == "episode")
             item->GetVideoInfoTag()->m_iEpisode = strtol(value.c_str(), NULL, 10);
           else if (key == "season")
@@ -377,7 +377,11 @@ namespace XBMCAddon
           else if (key == "tvshowtitle")
             item->GetVideoInfoTag()->m_strShowTitle = value;
           else if (key == "premiered")
-            item->GetVideoInfoTag()->m_premiered.SetFromDateString(value);
+          {
+            CDateTime premiered;
+            premiered.SetFromDateString(value);
+            item->GetVideoInfoTag()->SetPremiered(premiered);
+          }
           else if (key == "status")
             item->GetVideoInfoTag()->m_strStatus = value;
           else if (key == "code")

@@ -1457,7 +1457,8 @@
       { "name": "resume", "type": [ "null", { "$ref": "Video.Resume", "required": true } ], "default": null },
       { "name": "userrating", "$ref": "Optional.Integer" },
       { "name": "ratings", "$ref": "Video.Ratings" },
-      { "name": "dateadded", "$ref": "Optional.String" }
+      { "name": "dateadded", "$ref": "Optional.String" },
+      { "name": "premiered", "$ref": "Optional.String" }
     ],
     "returns": "string"
   },
@@ -1575,7 +1576,8 @@
       { "name": "resume", "type": [ "null", { "$ref": "Video.Resume", "required": true } ], "default": null },
       { "name": "rating", "$ref": "Optional.Number" },
       { "name": "userrating", "$ref": "Optional.Integer" },
-      { "name": "dateadded", "$ref": "Optional.String" }
+      { "name": "dateadded", "$ref": "Optional.String" },
+      { "name": "premiered", "$ref": "Optional.String" }
     ],
     "returns": "string"
   },
