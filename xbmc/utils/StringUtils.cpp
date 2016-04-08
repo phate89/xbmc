@@ -707,6 +707,17 @@ std::string StringUtils::Join(const std::vector<std::string> &strings, const std
   return result;
 }
 
+std::string StringUtils::Join(const std::map<std::string, int> &strings, const std::string& delimiter)
+{
+  std::string result;
+  for (const auto& item: strings)
+    result += item.first + delimiter;
+
+  if (!result.empty())
+    result.erase(result.size() - delimiter.size());
+  return result;
+}
+
 std::vector<std::string> StringUtils::Split(const std::string& input, const std::string& delimiter, unsigned int iMaxStrings /* = 0 */)
 {
   std::vector<std::string> results;

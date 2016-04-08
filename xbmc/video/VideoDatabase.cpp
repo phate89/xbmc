@@ -1606,7 +1606,28 @@ void CVideoDatabase::AddLinksToItem(int mediaId, const std::string& mediaType, c
   }
 }
 
+void CVideoDatabase::AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::map<std::string, int>& values)
+{
+  for (const auto& item: values)
+  {
+    if (item.first.empty())
+    {
+      int idValue = AddToTable(field, field + "_id", "name", item.first);
+      if (idValue > -1)
+        AddToLinkTable(mediaId, mediaType, field, idValue);
+    }
+  }
+}
+
 void CVideoDatabase::UpdateLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values)
+{
+  std::string sql = PrepareSQL("DELETE FROM %s_link WHERE media_id=%i AND media_type='%s'", field.c_str(), mediaId, mediaType.c_str());
+  m_pDS->exec(sql);
+
+  AddLinksToItem(mediaId, mediaType, field, values);
+}
+
+void CVideoDatabase::UpdateLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::map<std::string, int>& values)
 {
   std::string sql = PrepareSQL("DELETE FROM %s_link WHERE media_id=%i AND media_type='%s'", field.c_str(), mediaId, mediaType.c_str());
   m_pDS->exec(sql);
@@ -3938,18 +3959,18 @@ void CVideoDatabase::GetCast(int media_id, const std::string &media_type, std::v
   }
 }
 
-void CVideoDatabase::GetTags(int media_id, const std::string &media_type, std::vector<std::string> &tags)
+void CVideoDatabase::GetTags(int media_id, const std::string &media_type, std::map<std::string, int> &tags)
 {
   try
   {
     if (!m_pDB.get()) return;
     if (!m_pDS2.get()) return;
 
-    std::string sql = PrepareSQL("SELECT tag.name FROM tag INNER JOIN tag_link ON tag_link.tag_id = tag.tag_id WHERE tag_link.media_id = %i AND tag_link.media_type = '%s' ORDER BY tag.tag_id", media_id, media_type.c_str());
+    std::string sql = PrepareSQL("SELECT tag.tag_id, tag.name FROM tag INNER JOIN tag_link ON tag_link.tag_id = tag.tag_id WHERE tag_link.media_id = %i AND tag_link.media_type = '%s' ORDER BY tag.tag_id", media_id, media_type.c_str());
     m_pDS2->query(sql);
     while (!m_pDS2->eof())
     {
-      tags.push_back(m_pDS2->fv(0).get_asString());
+      tags[m_pDS2->fv(1).get_asString()] = m_pDS2->fv(0).get_asInt();
       m_pDS2->next();
     }
     m_pDS2->close();

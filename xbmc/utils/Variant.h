@@ -66,6 +66,14 @@ public:
   CVariant(std::wstring &&str);
   CVariant(const std::vector<std::string> &strArray);
   CVariant(const std::map<std::string, std::string> &strMap);
+  template<typename T>
+  CVariant(const std::map<std::string, T> &strMap)
+  {
+    m_type = VariantTypeObject;
+    m_data.map = new VariantMap;
+    for (auto item: strMap)
+      m_data.map->insert(make_pair(item.first, CVariant(item.second)));
+  }
   CVariant(const std::map<std::string, CVariant> &variantMap);
   CVariant(const CVariant &variant);
   CVariant(CVariant &&rhs);

@@ -216,7 +216,8 @@ bool CVideoInfoTag::Save(TiXmlNode *node, const std::string &tag, bool savePathI
       XMLUtils::SetString(&set, "overview", m_strSetOverview);
     movie->InsertEndChild(set);
   }
-  XMLUtils::SetStringArray(movie, "tag", m_tags);
+  for (const auto& item: m_tags)
+    XMLUtils::SetString(movie, "tag", item.first);
   XMLUtils::SetStringArray(movie, "credits", m_writingCredits);
   XMLUtils::SetStringArray(movie, "director", m_director);
   XMLUtils::SetDate(movie, "premiered", m_premiered);
@@ -336,7 +337,9 @@ void CVideoInfoTag::Archive(CArchive& ar)
     ar << m_strSet;
     ar << m_iSetId;
     ar << m_strSetOverview;
-    ar << m_tags;
+    ar << (int)m_tags.size();
+    for (const auto& tag : m_tags)
+      ar << tag.first;
     ar << m_duration;
     ar << m_strFile;
     ar << m_strPath;
@@ -409,10 +412,10 @@ void CVideoInfoTag::Archive(CArchive& ar)
     ar >> m_strSortTitle;
     ar >> m_studio;
     ar >> m_strTrailer;
-    int iCastSize;
-    ar >> iCastSize;
-    m_cast.reserve(iCastSize);
-    for (int i=0;i<iCastSize;++i)
+    int iSize;
+    ar >> iSize;
+    m_cast.reserve(iSize);
+    for (int i=0;i<iSize;++i)
     {
       SActorInfo info;
       ar >> info.strName;
@@ -428,7 +431,13 @@ void CVideoInfoTag::Archive(CArchive& ar)
     ar >> m_strSet;
     ar >> m_iSetId;
     ar >> m_strSetOverview;
-    ar >> m_tags;
+    ar >> iSize;
+    for (int i = 0; i < iSize; ++i)
+    {
+      std::string tag;
+      ar >> tag;
+      m_tags[tag] = 0;
+    }
     ar >> m_duration;
     ar >> m_strFile;
     ar >> m_strPath;
@@ -451,9 +460,8 @@ void CVideoInfoTag::Archive(CArchive& ar)
     ar >> m_iSeason;
     ar >> m_iEpisode;
     ar >> m_strUniqueId;
-    int iRatingSize;
-    ar >> iRatingSize;
-    for (int i = 0; i < iRatingSize; ++i)
+    ar >> iSize;
+    for (int i = 0; i < iSize; ++i)
     {
       CRating rating;
       std::string name;
@@ -476,9 +484,8 @@ void CVideoInfoTag::Archive(CArchive& ar)
     ar >> dynamic_cast<IArchivable&>(m_streamDetails);
     ar >> m_showLink;
 
-    int namedSeasonSize;
-    ar >> namedSeasonSize;
-    for (int i = 0; i < namedSeasonSize; ++i)
+    ar >> iSize;
+    for (int i = 0; i < iSize; ++i)
     {
       int seasonNumber;
       ar >> seasonNumber;
@@ -529,7 +536,19 @@ void CVideoInfoTag::Serialize(CVariant& value) const
   value["set"] = m_strSet;
   value["setid"] = m_iSetId;
   value["setoverview"] = m_strSetOverview;
-  value["tag"] = m_tags;
+
+
+  value["taglist"] = CVariant(CVariant::VariantTypeArray);
+  value["tag"] = CVariant(CVariant::VariantTypeArray);
+  for (auto& m_tag: m_tags)
+  {
+    CVariant tag;
+    tag["tagid"] = m_tag.second;
+    tag["title"] = m_tag.first;
+    value["taglist"].push_back(tag);
+    value["tag"].push_back(m_tag.first);
+  }
+
   value["runtime"] = GetDuration();
   value["file"] = m_strFile;
   value["path"] = m_strPath;
@@ -936,9 +955,14 @@ void CVideoInfoTag::ParseNative(const TiXmlElement* movie, bool prioritise)
     }
   }
 
-  std::vector<std::string> tags(m_tags);
-  if (XMLUtils::GetStringArray(movie, "tag", tags, prioritise, g_advancedSettings.m_videoItemSeparator))
-    SetTags(tags);
+  for (const auto* child = movie->FirstChildElement("tag"); child != nullptr; child = child->NextSiblingElement("tag"))
+  {
+    if (child->FirstChild())
+    {
+      std::string str = child->FirstChild()->ValueStr();
+      m_tags[StringUtils::Trim(str)] = 0;
+    }
+  }
 
   std::vector<std::string> studio(m_studio);
   if (XMLUtils::GetStringArray(movie, "studio", studio, prioritise, g_advancedSettings.m_videoItemSeparator))
@@ -1204,11 +1228,6 @@ void CVideoInfoTag::SetSet(std::string set)
 void CVideoInfoTag::SetSetOverview(std::string setOverview)
 {
   m_strSetOverview = Trim(std::move(setOverview));
-}
-
-void CVideoInfoTag::SetTags(std::vector<std::string> tags)
-{
-  m_tags = Trim(std::move(tags));
 }
 
 void CVideoInfoTag::SetFile(std::string file)

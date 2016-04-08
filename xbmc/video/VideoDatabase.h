@@ -882,8 +882,10 @@ protected:
   void AddToLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey = NULL);
   void RemoveFromLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey = NULL);
 
+  void AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::map<std::string, int>& values);
   void AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
   void UpdateLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
+  void UpdateLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::map<std::string, int>& values);
   void AddActorLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
   void UpdateActorLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
 
@@ -901,7 +903,7 @@ protected:
   bool GetPeopleNav(const std::string& strBaseDir, CFileItemList& items, const char *type, int idContent = -1, const Filter &filter = Filter(), bool countOnly = false);
   bool GetNavCommon(const std::string& strBaseDir, CFileItemList& items, const char *type, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
   void GetCast(int media_id, const std::string &media_type, std::vector<SActorInfo> &cast);
-  void GetTags(int media_id, const std::string &media_type, std::vector<std::string> &tags);
+  void GetTags(int media_id, const std::string &media_type, std::map<std::string, int> &tags);
   void GetRatings(int media_id, const std::string &media_type, RatingMap &ratings);
 
   void GetDetailsFromDB(std::unique_ptr<dbiplus::Dataset> &pDS, int min, int max, const SDbTableOffsets *offsets, CVideoInfoTag &details, int idxOffset = 2);

@@ -19,6 +19,10 @@
     "type": "array",
     "items": { "type": "string", "minLength": 1 }
   },
+  "Array.Tag": {
+    "type": "array",
+    "items": { "type": "Library.Details.Tag" }
+  },
   "Array.Integer": {
     "type": "array",
     "items": { "type": "integer" }
@@ -404,6 +408,16 @@
       "thumbnail": { "type": "string" }
     }
   },
+  "Library.Details.Tag": {
+    "extends": "Item.Details.Base",
+    "properties": {
+      "tagid": {
+        "$ref": "Library.Id",
+        "required": true
+      },
+      "title": { "type": "string" }
+    }
+  },
   "Audio.Fields.Role": {
     "extends": "Item.Fields.Base",
     "items": { "type": "string", "enum": [ "title" ] }
@@ -591,13 +605,13 @@
   "Video.Fields.Movie": {
     "extends": "Item.Fields.Base",
     "items": { "type": "string",
-      "description": "Requesting the cast, ratings, showlink, streamdetails and/or tag field will result in increased response times",
+      "description": "Requesting the cast, ratings, showlink, streamdetails, tag and/or taglist field will result in increased response times",
       "enum": [ "title", "genre", "year", "rating", "director", "trailer",
                 "tagline", "plot", "plotoutline", "originaltitle", "lastplayed",
                 "playcount", "writer", "studio", "mpaa", "cast", "country",
                 "imdbnumber", "runtime", "set", "showlink", "streamdetails",
                 "top250", "votes", "fanart", "thumbnail", "file", "sorttitle",
-                "resume", "setid", "dateadded", "tag", "art", "userrating", "ratings" ]
+                "resume", "setid", "dateadded", "tag", "art", "userrating", "ratings", "taglist" ]
     }
   },
   "Video.Fields.MovieSet": {
@@ -609,13 +623,13 @@
   "Video.Fields.TVShow": {
     "extends": "Item.Fields.Base",
     "items": { "type": "string",
-      "description": "Requesting the cast, ratings and/or tag field will result in increased response times",
+      "description": "Requesting the cast, ratings, tag and/or taglist field will result in increased response times",
       "enum": [ "title", "genre", "year", "rating", "plot",
                 "studio", "mpaa", "cast", "playcount", "episode",
                 "imdbnumber", "premiered", "votes", "lastplayed",
                 "fanart", "thumbnail", "file", "originaltitle",
                 "sorttitle", "episodeguide", "season", "watchedepisodes",
-                "dateadded", "tag", "art", "userrating", "ratings", "runtime" ]
+                "dateadded", "tag", "art", "userrating", "ratings", "runtime", "taglist" ]
     }
   },
   "Video.Fields.Season": {
@@ -628,7 +642,7 @@
   "Video.Fields.Episode": {
     "extends": "Item.Fields.Base",
     "items": { "type": "string",
-      "description": "Requesting the cast, ratings, streamdetails and/or tag field will result in increased response times",
+      "description": "Requesting the cast, ratings and/or streamdetails field will result in increased response times",
       "enum": [ "title", "plot", "votes", "rating", "writer",
                 "firstaired", "playcount", "runtime", "director",
                 "productioncode", "season", "episode", "originaltitle",
@@ -641,12 +655,12 @@
   "Video.Fields.MusicVideo": {
     "extends": "Item.Fields.Base",
     "items": { "type": "string",
-      "description": "Requesting the streamdetails and/or tag field will result in increased response times",
+      "description": "Requesting the streamdetails, tag and/or taglist field will result in increased response times",
       "enum": [ "title", "playcount", "runtime", "director",
                 "studio", "year", "plot", "album", "artist",
                 "genre", "track", "streamdetails", "lastplayed",
                 "fanart", "thumbnail", "file", "resume", "dateadded",
-                "tag", "art", "rating", "userrating" ]
+                "tag", "art", "rating", "userrating", "taglist" ]
     }
   },
   "Video.Cast": {
@@ -773,7 +787,8 @@
       "setid": { "$ref": "Library.Id" },
       "tag": { "$ref": "Array.String" },
       "userrating": { "type": "integer" },
-      "ratings": { "type": "Video.Ratings" }
+      "ratings": { "type": "Video.Ratings" },
+      "taglist": { "type": "Array.Tag" }
     }
   },
   "Video.Details.MovieSet": {
@@ -814,7 +829,8 @@
       "tag": { "$ref": "Array.String" },
       "userrating": { "type": "integer" },
       "ratings": { "type": "Video.Ratings" },
-      "runtime": { "type": "integer", "description": "Runtime in seconds" }
+      "runtime": { "type": "integer", "description": "Runtime in seconds" },
+      "taglist": { "type": "Array.Tag" }
     }
   },
   "Video.Details.Season": {
@@ -864,7 +880,8 @@
       "track": { "type": "integer" },
       "tag": { "$ref": "Array.String" },
       "rating": { "type": "number" },
-      "userrating": { "type": "integer" }
+      "userrating": { "type": "integer" },
+      "taglist": { "type": "Array.Tag" }
     }
   },
   "PVR.Property.Name": {
@@ -1360,7 +1377,8 @@
       "displaycomposer": { "type": "string"},
       "displayconductor": { "type": "string"},
       "displayorchestra": { "type": "string"},
-      "displaylyricist": { "type": "string"}
+      "displaylyricist": { "type": "string"},
+      "taglist": { "type": "Array.Tag" }
     }
   },
   "List.Fields.All": {
@@ -1380,7 +1398,7 @@
                 "episodeguide", "uniqueid", "dateadded", "channel", "channeltype", "hidden",
                 "locked", "channelnumber", "starttime", "endtime", "specialsortseason",
                 "specialsortepisode", "compilation", "releasetype", "albumreleasetype",
-                "contributors", "displaycomposer", "displayconductor", "displayorchestra", "displaylyricist" ]
+                "contributors", "displaycomposer", "displayconductor", "displayorchestra", "displaylyricist", "taglist" ]
     }
   },
   "List.Item.All": {
@@ -1410,7 +1428,7 @@
                 "disc", "tag", "art", "genreid", "displayartist", "albumartistid",
                 "description", "theme", "mood", "style", "albumlabel", "sorttitle",
                 "episodeguide", "uniqueid", "dateadded", "size", "lastmodified", "mimetype",
-                "specialsortseason", "specialsortepisode" ]
+                "specialsortseason", "specialsortepisode", "taglist" ]
     }
   },
   "List.Item.File": {

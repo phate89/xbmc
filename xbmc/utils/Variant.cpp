@@ -266,14 +266,6 @@ CVariant::CVariant(const std::vector<std::string> &strArray)
     m_data.array->push_back(CVariant(item));
 }
 
-CVariant::CVariant(const std::map<std::string, std::string> &strMap)
-{
-  m_type = VariantTypeObject;
-  m_data.map = new VariantMap;
-  for (std::map<std::string, std::string>::const_iterator it = strMap.begin(); it != strMap.end(); ++it)
-    m_data.map->insert(make_pair(it->first, CVariant(it->second)));
-}
-
 CVariant::CVariant(const std::map<std::string, CVariant> &variantMap)
 {
   m_type = VariantTypeObject;
