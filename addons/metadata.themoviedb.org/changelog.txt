@@ -1,3 +1,7 @@
+[B]4.0.0[/B]
+- reworked the addon to use the new python api
+- added: support for multiple ratings/onlineids
+
 [B]3.9.2[/B]
 - added: some new languages
 
