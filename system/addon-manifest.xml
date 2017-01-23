@@ -18,7 +18,6 @@
   <addon>metadata.common.imdb.com</addon>
   <addon>metadata.common.musicbrainz.org</addon>
   <addon>metadata.common.theaudiodb.com</addon>
-  <addon>metadata.common.themoviedb.org</addon>
   <addon>metadata.local</addon>
   <addon>metadata.themoviedb.org</addon>
   <addon>metadata.tvdb.com</addon>
@@ -30,6 +29,8 @@
   <addon>screensaver.xbmc.builtin.dim</addon>
   <addon>script.module.pil</addon>
   <addon>script.module.pycryptodome</addon>
+  <addon>script.module.requests</addon>
+  <addon>script.module.tmdbsimple</addon>
   <addon>service.xbmc.versioncheck</addon>
   <addon>skin.estuary</addon>
   <addon>skin.estouchy</addon>
