@@ -15,7 +15,6 @@
   <addon>metadata.common.allmusic.com</addon>
   <addon>metadata.common.fanart.tv</addon>
   <addon>metadata.common.htbackdrops.com</addon>
-  <addon>metadata.common.imdb.com</addon>
   <addon>metadata.common.musicbrainz.org</addon>
   <addon>metadata.common.theaudiodb.com</addon>
   <addon>metadata.local</addon>
@@ -31,6 +30,7 @@
   <addon>script.module.pycryptodome</addon>
   <addon>script.module.requests</addon>
   <addon>script.module.tmdbsimple</addon>
+  <addon>script.module.tvdbsimple</addon>
   <addon>service.xbmc.versioncheck</addon>
   <addon>skin.estuary</addon>
   <addon>skin.estouchy</addon>

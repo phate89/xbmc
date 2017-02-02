@@ -27,6 +27,7 @@ addons/script.module.pycryptodome/*
 addons/script.module.pysqlite/*
 addons/script.module.requests/*
 addons/script.module.tmdbsimple/*
+addons/script.module.tvdbsimple/*
 addons/resource.language.en_gb/*
 addons/resource.uisounds.kodi/*
 addons/resource.images.weathericons.default/*
@@ -37,7 +38,6 @@ addons/metadata.artists.universal/*
 addons/metadata.common.allmusic.com/*
 addons/metadata.common.fanart.tv/*
 addons/metadata.common.htbackdrops.com/*
-addons/metadata.common.imdb.com/*
 addons/metadata.common.musicbrainz.org/*
 addons/metadata.common.theaudiodb.com/*
 addons/metadata.themoviedb.org/*
