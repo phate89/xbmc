@@ -1,3 +1,7 @@
+[B]2.0.0[/B]
+- reworked the addon to use the new python api
+- added: support for multiple ratings/onlineids
+
 [B]1.8.4[/B]
 - Added: Runtime for tvshows - needs Krypton or newer
 
